@@ -10,13 +10,13 @@ repeat taks one time and again
 ### Make a ping to all hosts in inventory
 
 ```
-ansible all -i inventory.yml -m ping
+ansible all -i inventory -m ping
 ```
 
 ### Update all hosts in inventory
 
 ```
-ansible-playbook -i inventory.yml update
+ansible-playbook -i inventory playbooks/
 ```
 
 ### Install docker in all webs
@@ -24,7 +24,7 @@ ansible-playbook -i inventory.yml update
 Add docker repository and add `ubuntu` user to docker group
 
 ```
-ansible -i inventory.yml install_docker.yml
+ansible -i inventory playbooks/install_docker.yml
 ```
 
 

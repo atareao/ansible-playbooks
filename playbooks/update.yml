@@ -33,4 +33,5 @@
         host={{ inventory_hostname }}
         search_regex=OpenSSH
         delay=10
+      when: reboot_required_file.stat.exists == true
 
