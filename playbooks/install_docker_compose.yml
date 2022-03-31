@@ -1,5 +1,5 @@
 ---
-- hosts: webs
+- hosts: all
   become: true
   tasks:
 
