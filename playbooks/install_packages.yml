@@ -1,0 +1,11 @@
+---
+- hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+
+    - name: install packages
+      apt:
+        pkg:
+        - git
+        - vim
