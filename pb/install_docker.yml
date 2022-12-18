@@ -1,0 +1,53 @@
+---
+- hosts: servidorlinux
+  become: true
+  tasks:
+    - name: update apt cache
+      apt:
+        update_cache: true
+        force_apt_get: true
+        cache_valid_time: 3600
+
+    - name: upgrade packages
+      apt:
+        name: "*"
+        state: latest
+
+    - name: install prerequisites
+      apt:
+        pkg:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - lsb-release
+        - software-properties-common
+
+    - name: add GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: add docker repository to apt
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+
+
+    - name: install docker engine
+      apt:
+        pkg:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: assert docker active
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: add user 'ubuntu' to group docker
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes

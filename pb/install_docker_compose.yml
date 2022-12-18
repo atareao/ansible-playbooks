@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+    - name: install dependencies
+      apt:
+        pkg:
+        - curl
+        - jq
+
+    - name: get docker-compose version
+      shell: |
+        curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r '.tag_name'
+      register: dockerComposeVersion
+
+    - name: show docker-compose version
+      debug:
+        msg: "docker-compose version: {{ dockerComposeVersion.stdout }}"
+
+    - name: Install docker-compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/{{ dockerComposeVersion.stdout }}/docker-compose-Linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x,a+x'

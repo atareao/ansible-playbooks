@@ -1,0 +1,37 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: update apt cacke
+      apt:
+        update_cache: true
+        force_apt_get: true
+        cache_valid_time: 3600
+
+    - name: upgrade packages
+      apt:
+        upgrade: dist
+
+    - name: Check if a reboot is required
+      register: reboot_required_file
+      stat:
+        path: /var/run/reboot-required
+        get_md5: false
+
+    - name: restart machine
+      become: yes
+      shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+      async: 1
+      poll: 0
+      ignore_errors: true
+      when: reboot_required_file.stat.exists == true
+
+    - name: Waiting for server to come back
+      become: no
+      local_action: wait_for
+        port=22
+        host={{ inventory_hostname }}
+        search_regex=OpenSSH
+        delay=10
+      when: reboot_required_file.stat.exists == true
+
