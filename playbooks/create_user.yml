@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Create user
+      user:
+        name: lorenzo
+        shell: /bin/zsh
+        state: present
+        ssh_key_file: /home/lorenzo/.ssh/id_ed25519
+
+
+

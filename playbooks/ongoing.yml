@@ -1,0 +1,78 @@
+########################################################
+# Automate Initial Server Setup of Ubuntu 22.04 Servers
+########################################################
+# This playbook contains 1 play.
+# Tasks in this play will be run against servers specified
+# in the control node's `/etc/ansible/hosts` file and will call variables defined in 
+# the `var/default.yml` file. The value of the **hosts** keyword should be the same as the 
+# group name of hosts defined in the `/etc/ansible/hosts` file.
+- hosts: ongoing
+  port: "{{ ssh_port }}"
+  remote_user: "{{ create_user }}"
+  become: true
+  vars_files:
+    - vars/default.yml
+    - secret
+  vars:
+    ansible_become_pass: "{{ password }}"
+
+  tasks:
+# Task 1: 
+# This task updates the package database, the equivalent of the
+# following command: `sudo apt update`.
+    - name: update cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+# Task 2: 
+# This task upgrades all installed packages, the equivalent of the
+# following command: `sudo apt upgrade -y`.
+    - name: Update all installed packages
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+
+# Task 3: 
+# This task ensures that the NTP daemon is running. This is especially
+# important when you want to make sure that the hosts that will power
+# your distributed application are in sync - time-wise.
+    - name: Make sure NTP service is running
+      ansible.builtin.systemd:
+        state: started
+        name: systemd-timesyncd
+
+# Task 4: 
+# This task uses the command module to check the status of UFW and capture the 
+# output in the `ufw_status` variable.
+    - name: UFW - Is it running?
+      ansible.builtin.command: ufw status
+      register: ufw_status
+      
+# Task 5:
+# This task will run only if UFW is disabled.
+    - name: Enable UFW, if it's stopped
+      community.general.ufw:
+        state: enabled
+      when: "'inactive' in ufw_status.stdout"
+
+# Task 6: 
+# This tasks removes package dependencies that are no longer required, the
+# equivalent of running the `sudo apt autoremove` command.
+    - name: Remove dependencies that are no longer required
+      ansible.builtin.apt:
+        autoremove: yes
+
+# Task 7:
+# By calling the stat module, which is used to gather info about a file, this task checks if a 
+# reboot is required. It's akin to using the `stat` command in Linux.
+    - name: Check if reboot required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+
+# Task 8:
+# This task will reboot all the hosts ONLY if a reboot is required.
+    - name: Reboot if required
+      ansible.builtin.reboot:
+      when: reboot_required.stat.exists == true
+

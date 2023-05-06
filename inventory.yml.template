@@ -1,7 +1,0 @@
-all:
-  children:
-    grupo1:
-      hosts:
-        servidor1:
-        servidor2:
-        servidor3:
